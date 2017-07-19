@@ -16,24 +16,24 @@
  * limitations under the License.
  */
 
-name := """resources-manager-service"""
 organization := "ch.datascience"
-
 version := "0.1.0-SNAPSHOT"
+scalaVersion := "2.11.8"
 
+lazy val projectName = "resource-manager-service"
+name := projectName
 
 lazy val root = Project(
-  id   = "resources-manager",
-  base = file(".")
+    id   = "resources-manager",
+    base = file(".")
 ).dependsOn(
-  core,
-  serviceCommons
+    core,
+    serviceCommons
 ).enablePlugins(PlayScala)
 
 lazy val core = RootProject(file("../graph-core"))
 lazy val serviceCommons = RootProject(file("../service-commons"))
 
-scalaVersion := "2.11.8"
 lazy val janusgraph_version = "0.1.0"
 
 libraryDependencies += filters
