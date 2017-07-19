@@ -26,6 +26,7 @@ import play.api.mvc.Controller
 /**
   * Created by johann on 13/06/17.
   */
+// TODO: move this and dependents to service-commons
 trait GraphTraversalComponent { this: Controller =>
 
   protected def graphExecutionContextProvider: GraphExecutionContextProvider
