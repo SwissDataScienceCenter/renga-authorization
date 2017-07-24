@@ -24,11 +24,11 @@ import authorization.{JWTVerifierProvider, TokenSignerProvider}
 import ch.datascience.service.models.resource.json._
 import ch.datascience.service.models.resource.{AccessRequest, ScopeQualifier}
 import ch.datascience.service.security.TokenFilterAction
-import ch.datascience.service.utils.ControllerWithBodyParseJson
+import ch.datascience.service.utils.{ControllerWithBodyParseJson, ControllerWithGraphTraversal}
+import ch.datascience.service.utils.persistence.graph.{GraphExecutionContextProvider, JanusGraphTraversalSourceProvider}
+import ch.datascience.service.utils.persistence.reader.VertexReader
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.{JWT, JWTVerifier}
-import persistence.graph.{GraphExecutionContextProvider, JanusGraphTraversalSourceProvider}
-import persistence.reader.VertexReader
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -45,7 +45,7 @@ class PermissionController @Inject() (
   implicit val graphExecutionContextProvider: GraphExecutionContextProvider,
   implicit val janusGraphTraversalSourceProvider: JanusGraphTraversalSourceProvider,
   implicit val vertexReader: VertexReader
-) extends Controller with ControllerWithBodyParseJson with GraphTraversalComponent {
+) extends Controller with ControllerWithBodyParseJson with ControllerWithGraphTraversal {
 
   val verifier: JWTVerifier = verifierProvider.get
 
