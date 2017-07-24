@@ -24,7 +24,7 @@ lazy val projectName = "resource-manager-service"
 name := projectName
 
 lazy val root = Project(
-  id   = "resources-manager",
+  id   = projectName,
   base = file(".")
 ).dependsOn(
   core,
