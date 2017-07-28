@@ -18,17 +18,17 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
-import authorization.{JWTVerifierProvider, TokenSignerProvider}
+import authorization.{ JWTVerifierProvider, TokenSignerProvider }
 import ch.datascience.service.models.resource.json._
-import ch.datascience.service.models.resource.{AccessRequest, ScopeQualifier}
+import ch.datascience.service.models.resource.{ AccessRequest, ScopeQualifier }
 import ch.datascience.service.security.TokenFilterAction
-import ch.datascience.service.utils.{ControllerWithBodyParseJson, ControllerWithGraphTraversal}
-import ch.datascience.service.utils.persistence.graph.{GraphExecutionContextProvider, JanusGraphTraversalSourceProvider}
+import ch.datascience.service.utils.{ ControllerWithBodyParseJson, ControllerWithGraphTraversal }
+import ch.datascience.service.utils.persistence.graph.{ GraphExecutionContextProvider, JanusGraphTraversalSourceProvider }
 import ch.datascience.service.utils.persistence.reader.VertexReader
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.auth0.jwt.{JWT, JWTVerifier}
+import com.auth0.jwt.{ JWT, JWTVerifier }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
@@ -36,69 +36,69 @@ import play.api.mvc._
 import scala.concurrent.Future
 
 /**
-  * Created by jeberle on 25.04.17.
-  */
+ * Created by jeberle on 25.04.17.
+ */
 @Singleton
 class PermissionController @Inject() (
-  verifierProvider: JWTVerifierProvider,
-  tokenSignerProvider: TokenSignerProvider,
-  implicit val graphExecutionContextProvider: GraphExecutionContextProvider,
-  implicit val janusGraphTraversalSourceProvider: JanusGraphTraversalSourceProvider,
-  implicit val vertexReader: VertexReader
+    verifierProvider:                               JWTVerifierProvider,
+    tokenSignerProvider:                            TokenSignerProvider,
+    implicit val graphExecutionContextProvider:     GraphExecutionContextProvider,
+    implicit val janusGraphTraversalSourceProvider: JanusGraphTraversalSourceProvider,
+    implicit val vertexReader:                      VertexReader
 ) extends Controller with ControllerWithBodyParseJson with ControllerWithGraphTraversal {
 
   val verifier: JWTVerifier = verifierProvider.get
 
-  def authorize: Action[AccessRequest] = TokenFilterAction(verifier).async(bodyParseJson[AccessRequest]) { implicit request =>
+  def authorize: Action[AccessRequest] = TokenFilterAction( verifier ).async( bodyParseJson[AccessRequest] ) { implicit request =>
     val accessRequest = request.body
     val accessToken = request.token
 
     val futureScope = accessRequest.permissionHolderId match {
-      case Some(resourceId) =>
-        authorizeAccess(accessToken, resourceId, accessRequest.scope)
+      case Some( resourceId ) =>
+        authorizeAccess( accessToken, resourceId, accessRequest.scope )
       case None =>
-        authorizeGlobalAccess(accessToken, accessRequest.scope)
+        authorizeGlobalAccess( accessToken, accessRequest.scope )
     }
 
     val futureToken = for {
       scope <- futureScope
     } yield {
       val tokenBuilder = JWT.create()
-      tokenBuilder.withSubject(accessToken.getSubject)
-      for (resourceId <- accessRequest.permissionHolderId) {
-        tokenBuilder.withClaim("resource_id", Long.box(resourceId))
+      tokenBuilder.withSubject( accessToken.getSubject )
+      for ( resourceId <- accessRequest.permissionHolderId ) {
+        tokenBuilder.withClaim( "resource_id", Long.box( resourceId ) )
       }
-      tokenBuilder.withArrayClaim("resource_scope", scope.toArray.map(_.name))
-      for (extraClaims <- accessRequest.extraClaims) {
-        tokenBuilder.withClaim("resource_extras", extraClaims.toString())
+      tokenBuilder.withArrayClaim( "resource_scope", scope.toArray.map( _.name ) )
+      for ( extraClaims <- accessRequest.extraClaims ) {
+        tokenBuilder.withClaim( "resource_extras", extraClaims.toString() )
       }
-      tokenSignerProvider.addDefaultHeadersAndClaims(tokenBuilder)
-      tokenBuilder.sign(tokenSignerProvider.get)
+      tokenSignerProvider.addDefaultHeadersAndClaims( tokenBuilder )
+      tokenBuilder.sign( tokenSignerProvider.get )
     }
 
     for {
       token <- futureToken
     } yield {
-      Ok(Json.toJson(JsObject(Map("access_token" -> JsString(token)))))
+      Ok( Json.toJson( JsObject( Map( "access_token" -> JsString( token ) ) ) ) )
     }
   }
 
-  def authorizeAccess(accessToken: DecodedJWT, resourceId: Long, scopes: Set[ScopeQualifier]): Future[Set[ScopeQualifier]] = {
+  def authorizeAccess( accessToken: DecodedJWT, resourceId: Long, scopes: Set[ScopeQualifier] ): Future[Set[ScopeQualifier]] = {
     val g = graphTraversalSource
-    val t = g.V(Long.box(resourceId))
+    val t = g.V( Long.box( resourceId ) )
 
     val futureVertex = Future {
       graphExecutionContext.execute {
-        if (t.hasNext)
-          Some(t.next())
+        if ( t.hasNext )
+          Some( t.next() )
         else
           None
       }
     }
 
     val futurePersistedVertex = futureVertex.flatMap {
-      case Some(v) => vertexReader.read(v).map(Some.apply)
-      case None => Future.successful(None)
+      case Some( v ) => vertexReader.read( v ).map( Some.apply )
+      case None      => Future.successful( None )
     }
 
     val futureOptScopes = for {
@@ -110,12 +110,12 @@ class PermissionController @Inject() (
       scopes
     }
 
-    futureOptScopes.map(_.getOrElse(Set.empty))
+    futureOptScopes.map( _.getOrElse( Set.empty ) )
   }
 
-  def authorizeGlobalAccess(accessToken: DecodedJWT, scopes: Set[ScopeQualifier]): Future[Set[ScopeQualifier]] = {
+  def authorizeGlobalAccess( accessToken: DecodedJWT, scopes: Set[ScopeQualifier] ): Future[Set[ScopeQualifier]] = {
     // TODO: perform ABAC, using accessToken and scopes
-    Future.successful(scopes)
+    Future.successful( scopes )
   }
 
 }
