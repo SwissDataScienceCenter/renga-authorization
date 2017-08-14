@@ -22,6 +22,7 @@ import authorization.{ JWTVerifierProvider, MockJWTVerifierProvider, MockTokenSi
 import ch.datascience.service.models.resource.json._
 import ch.datascience.service.models.resource.{ AccessGrant, AccessRequest, ScopeQualifier }
 import ch.datascience.service.security.FakeRequestWithToken._
+import ch.datascience.service.utils.persistence.graph.{ JanusGraphProvider, MockJanusGraphProvider }
 import com.auth0.jwt.JWT
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play._
@@ -40,6 +41,7 @@ class PermissionControllerSpec extends PlaySpec with OneAppPerSuite with Mockito
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .overrides( bind[JWTVerifierProvider].to[MockJWTVerifierProvider] )
     .overrides( bind[TokenSignerProvider].to[MockTokenSignerProvider] )
+    .overrides( bind[JanusGraphProvider].to[MockJanusGraphProvider] )
     .build()
 
   val permissionController: PermissionController = app.injector.instanceOf[PermissionController]
@@ -67,6 +69,27 @@ class PermissionControllerSpec extends PlaySpec with OneAppPerSuite with Mockito
       testedScope must contain allElementsOf returnedScope
     }
 
+    "returns an empty scope if the resource does not exist" in {
+      val testedScope: Set[ScopeQualifier] = Set( ScopeQualifier.StorageRead )
+
+      val tokenBuilder = JWT.create()
+      val tokenSignerProvider = app.injector.instanceOf[TokenSignerProvider]
+      tokenSignerProvider.addDefaultHeadersAndClaims( tokenBuilder )
+      val token = tokenBuilder.sign( tokenSignerProvider.get )
+
+      val accessRequest = AccessRequest( Some( -1 ), testedScope, None )
+
+      val result: Future[Result] = permissionController.authorize().apply( FakeRequest().withToken( token ).withBody( accessRequest ) )
+
+      val bodyResult: JsValue = contentAsJson( result )
+      val grant: AccessGrant = bodyResult.as[AccessGrant]
+      val returnedToken = grant.verifyAccessToken( app.injector.instanceOf[JWTVerifierProvider].get )
+
+      val returnedScope = returnedToken.scope
+
+      // Test that returnedScope is empty
+      returnedScope mustBe empty
+    }
   }
 
 }
