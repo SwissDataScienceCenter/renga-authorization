@@ -28,7 +28,7 @@ lazy val root = Project(
   base = file(".")
 ).dependsOn(
   core,
-  serviceCommons
+  serviceCommons % "compile->compile;test->test"
 ).enablePlugins(PlayScala)
 
 lazy val core = RootProject(file("../graph-core"))
@@ -42,6 +42,7 @@ libraryDependencies += filters
 libraryDependencies += "org.janusgraph" % "janusgraph-cassandra" % janusgraph_version //% Runtime
 
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % Test
+libraryDependencies += "org.mockito" % "mockito-core" % "2.8.47" % Test
 
 import com.typesafe.sbt.packager.docker._
 
