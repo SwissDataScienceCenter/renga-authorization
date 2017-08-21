@@ -21,8 +21,9 @@ package controllers
 import authorization.{ JWTVerifierProvider, MockJWTVerifierProvider, MockTokenSignerProvider, TokenSignerProvider }
 import ch.datascience.service.models.resource.json._
 import ch.datascience.service.models.resource.{ AccessGrant, AccessRequest, ScopeQualifier }
-import ch.datascience.service.security.FakeRequestWithToken._
-import ch.datascience.service.utils.persistence.graph.{ JanusGraphProvider, MockJanusGraphProvider }
+import ch.datascience.service.utils.persistence.graph.JanusGraphProvider
+import ch.datascience.test.security.FakeRequestWithToken._
+import ch.datascience.test.utils.persistence.graph.MockJanusGraphProvider
 import com.auth0.jwt.JWT
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play._
