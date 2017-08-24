@@ -3,5 +3,7 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
+# Api spec
+GET      /swagger.json                  controllers.SwaggerController.getSwagger
 
 POST     /authorize                     controllers.PermissionController.authorize

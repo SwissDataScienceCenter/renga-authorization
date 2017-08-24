@@ -1,0 +1,96 @@
+# API spec in YAML
+swagger: '2.0'
+info:
+  title: Resource Manager API
+  description: |
+    Resource Manager API specification
+  version: '0.0.1'
+# Host and schemes are injected by the service
+# will be prefixed to all paths
+basePath: /api/resource-manager
+produces:
+  - application/json
+consumes:
+  - application/json
+tags:
+- name: 'Resource Manager'
+  description: 'Resource Manager'
+paths:
+  /authorize:
+    post:
+      tags:
+        - 'Resource Manager'
+      summary: 'Authorize resource access'
+      parameters:
+      - in: body
+        name: body
+        description: 'Resource access request object'
+        required: true
+        schema:
+          $ref: '#/definitions/AccessRequest'
+      - in: header
+        name: Authorization
+        description: 'Bearer token'
+        required: true
+        type: string
+      responses:
+        200:
+          description: 'ok'
+        401:
+          description: 'Authentication required'
+definitions:
+  AccessRequest:
+    type: object
+    required:
+    - scope
+    properties:
+      resource_id:
+        type: integer
+        format: int64
+      scope:
+        type: array
+        items:
+          $ref: '#/definitions/ScopeQualifier'
+      service_claims:
+        type: object
+        description: Custom claims added by the requesting service
+    example:
+      scope:
+      - 'storage:bucket_create'
+      service_claims:
+        custom: 42
+  AccessGrant:
+    type: object
+    required:
+    - access_token
+    properties:
+      access_token:
+        type: string
+        description: Authorization token, for the custom claims see AccessGrantToken
+  AccessGrantToken:
+    type: object
+    required:
+    - scope
+    properties:
+      https://rm.datascience.ch/resource_id:
+        type: integer
+        format: int64
+      https://rm.datascience.ch/scope:
+        type: array
+        items:
+          $ref: '#/definitions/ScopeQualifier'
+      https://rm.datascience.ch/service_claims:
+        type: string
+        description: Equals to `service_claims` from request, but JSON serialized as string
+  ScopeQualifier:
+    type: string
+    enum:
+    - 'storage:read'
+    - 'storage:write'
+    - 'storage:create'
+    - 'storage:bucket_create'
+    - 'deployer:contexts_read'
+    - 'deployer:contexts_write'
+    - 'deployer:executions_read'
+    - 'deployer:executions_write'
+    title: ScopeQualifier
