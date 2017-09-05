@@ -28,16 +28,14 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/AccessRequest'
-      - in: header
-        name: Authorization
-        description: 'Bearer token'
-        required: true
-        type: string
       responses:
         200:
           description: 'ok'
         401:
           description: 'Authentication required'
+      security:
+      - token_auth:
+          - 'profile'
 definitions:
   AccessRequest:
     type: object
@@ -94,3 +92,9 @@ definitions:
     - 'deployer:executions_read'
     - 'deployer:executions_write'
     title: ScopeQualifier
+securityDefinitions:
+  token_auth:
+    type: "oauth2"
+    flow: "implicit"
+    scopes:
+      profile: user profile
