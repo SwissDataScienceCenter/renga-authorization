@@ -47,7 +47,7 @@ class PermissionController @Inject() (
     implicit val vertexReader:                      VertexReader
 ) extends Controller with ControllerWithBodyParseJson with ControllerWithGraphTraversal {
 
-  lazy val verifier: JWTVerifier = verifierProvider.get
+  val verifier: JWTVerifier = verifierProvider.get
 
   val jwtNamespace: String = "https://rm.datascience.ch"
 
