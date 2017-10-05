@@ -17,7 +17,7 @@
  */
 
 organization := "ch.datascience"
-version := "0.1.0"
+version := "0.1.1-SNAPSHOT"
 scalaVersion := "2.11.8"
 name := "renga-authorization"
 
@@ -28,8 +28,9 @@ lazy val root = (project in file("."))
 
 resolvers += "jitpack" at "https://jitpack.io"
 resolvers += "Oracle Released Java Packages" at "http://download.oracle.com/maven"
+resolvers += Resolver.sonatypeRepo("snapshots")
 
-lazy val renga_version = "0.1.0"
+lazy val renga_version = "0.1.1-SNAPSHOT"
 libraryDependencies += "ch.datascience" %% "renga-graph-core" % renga_version
 libraryDependencies += "ch.datascience" %% "renga-commons" % renga_version
 
