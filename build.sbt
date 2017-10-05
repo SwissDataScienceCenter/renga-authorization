@@ -81,13 +81,3 @@ val preferences =
     .setPreference( SpacesWithinPatternBinders,                   false )
 
 SbtScalariform.scalariformSettings ++ Seq(preferences)
-
-// Publishing
-publishTo := {
-  val nexus = "https://testing.datascience.ch:18081/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "repository/maven-snapshots/")
-  else
-    None //TODO
-}
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
